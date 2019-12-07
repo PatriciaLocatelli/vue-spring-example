@@ -1,0 +1,81 @@
+<!DOCTYPE html>
+<html lang="en">
+
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <meta http-equiv="X-UA-Compatible" content="ie=edge">
+    <title>Document</title>
+</head>
+
+<body>
+
+    <h1>Todos</h1>
+    <div id="app">
+        <input type="text" name="description" id="description" v-bind:value="currentTodo.description">
+        <button v-on:click="editDo">Salvar</button>
+        <ul v-if="todos.length > 0">
+            <li v-for="todo in todos">
+                {{ todo.description }}
+                | <button v-on:click="edit(todo)">editar</button>
+                | <button v-on:click="remove(todo.id)">apagar</button>
+            </li>
+        </ul>
+    </div>
+
+    <script src="https://cdn.jsdelivr.net/npm/vue/dist/vue.js"></script>
+    <script src="https://unpkg.com/axios/dist/axios.min.js"></script>
+
+    <script>
+        var vm = new Vue({
+            el: '#app',
+            data: {
+                currentTodo: { },
+                todos: [],
+                url: "http://localhost:8181"
+            },
+            methods: {
+                list: function () {
+                    axios.get(this.url + '/todos')
+                        .then(function (response) {
+                            vm.todos = response.data
+                        })
+                        .catch(function (error) {
+                            alert('Deu ruim.');
+                        })
+                },
+                edit: function (todo) {
+                    this.currentTodo = todo;
+                },
+                editDo: function () {
+                    console.log(this.currentTodo.description);return;
+                    var recebe;
+                    if((typeof vm.currentTodo.id) === 'undefined'){
+                        recebe = axios.post(this.url + '/todos', {
+                            description: vm.currentTodo.description
+                        })
+                    } else {
+                        recebe = axios.put(vm.url + '/todos/' + vm.currentTodo.id, todo)                        
+                    }
+                    recebe.then(function (response){
+                        alert('Salvou! :D');
+                    });
+                },
+                remove: function (todo) {
+                    axios.delete(vm.url + '/todos/' + todo)
+                        .then(function (response) {
+                            alert('Registro removido');
+                            vm.list();
+                        }).catch(function (error) {
+                            alert('Não deeeu :/ !');
+                        })
+                }
+            },
+            mounted: function () {
+                this.list();
+            }
+        })    
+    </script>
+</body>
+
+</html>
