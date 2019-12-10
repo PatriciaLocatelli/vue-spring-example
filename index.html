@@ -12,7 +12,8 @@
 
     <h1>Todos</h1>
     <div id="app">
-        <input type="text" name="description" id="description" v-bind:value="currentTodo.description">
+        <input type="text" name="description" id="description" v-model="currentDescription">
+        <button v-on:click="newTodo">Novo</button>
         <button v-on:click="editDo">Salvar</button>
         <ul v-if="todos.length > 0">
             <li v-for="todo in todos">
@@ -30,11 +31,16 @@
         var vm = new Vue({
             el: '#app',
             data: {
-                currentTodo: { },
+                currentDescription: null,
+                currentId: null,
                 todos: [],
                 url: "http://localhost:8181"
             },
             methods: {
+                newTodo: function () {
+                    vm.currentDescription = null;
+                    vm.currentId = null;
+                },
                 list: function () {
                     axios.get(this.url + '/todos')
                         .then(function (response) {
@@ -45,19 +51,23 @@
                         })
                 },
                 edit: function (todo) {
-                    this.currentTodo = todo;
+                    vm.currentDescription = todo.description;
+                    vm.currentId = todo.id;
                 },
                 editDo: function () {
-                    console.log(this.currentTodo.description);return;
-                    var recebe;
-                    if((typeof vm.currentTodo.id) === 'undefined'){
-                        recebe = axios.post(this.url + '/todos', {
-                            description: vm.currentTodo.description
-                        })
+                    var request;
+                    if (!vm.currentId) {
+                        request = axios.post(this.url + '/todos', {
+                            description: vm.currentDescription
+                        });
                     } else {
-                        recebe = axios.put(vm.url + '/todos/' + vm.currentTodo.id, todo)                        
+                        request = axios.put(vm.url + '/todos/' + vm.currentId, {
+                            id: vm.currentId,
+                            description: vm.currentDescription
+                        });
                     }
-                    recebe.then(function (response){
+                    request.then(function (response){
+                        vm.list();
                         alert('Salvou! :D');
                     });
                 },
